@@ -112,6 +112,13 @@ func install(ctx *log.Context, h types.HandlerEnvironment, report *types.RunComm
 }
 
 func uninstall(ctx *log.Context, h types.HandlerEnvironment, report *types.RunCommandInstanceView, metadata types.RCMetadata, c types.Cmd) (string, string, error, int) {
+	cfg, err1 := handlersettings.GetHandlerSettings(h.HandlerEnvironment.ConfigFolder, metadata.ExtName, metadata.SeqNum, ctx)
+	if err1 != nil {
+		return "", "", errors.Wrap(err1, "failed to get configuration"), constants.ExitCode_GetHandlerSettingsFailed
+	}
+	ctx.Log("event", "uninstalling immediate run command")
+	ctx.Log("event", "InstallAsService", "value", cfg.InstallAsService())
+
 	exitCode, err := immediatecmds.Uninstall(ctx, h, metadata.ExtName, metadata.SeqNum)
 	if err != nil {
 		return "", "", err, exitCode
