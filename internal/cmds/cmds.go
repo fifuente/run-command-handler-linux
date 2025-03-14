@@ -137,6 +137,15 @@ func uninstall(ctx *log.Context, h types.HandlerEnvironment, report *types.RunCo
 }
 
 func enablePre(ctx *log.Context, h types.HandlerEnvironment, metadata types.RCMetadata, c types.Cmd) error {
+	// parse the extension handler settings (not available prior to 'enable')
+	ctx.Log("message", "Parsing extension handler settings")
+	cfg, err1 := handlersettings.GetHandlerSettings(h.HandlerEnvironment.ConfigFolder, metadata.ExtName, metadata.SeqNum, ctx)
+	if err1 != nil {
+		return errors.Wrap(err1, "failed to get configuration")
+	}
+	ctx.Log("message", "Parsing extension handler settings complete")
+
+	ctx.Log("message", "Configuration settings", "settings", cfg.InstallAsService())
 	// exit if this sequence number (a snapshot of the configuration) is already
 	// processed. if not, save this sequence number before proceeding.
 	if shouldExit, err := checkAndSaveSeqNum(ctx, metadata.SeqNum, metadata.MostRecentSequence); err != nil {
