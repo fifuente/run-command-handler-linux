@@ -115,9 +115,10 @@ func (o *StatusObserver) RemoveProcessedGoalStates(goalStateKeys []types.GoalSta
 	// TODO: Eventually we'll need to report also already processed goal states to the HGAP even if they are not in the new list.
 	// TODO: When a command is sent down with toBeDeleted = true, then we should remove it and no longer report on it.
 	o.goalStateEventMap.Range(func(key, value interface{}) bool {
-		if !slices.Contains(goalStateKeys, key.(types.GoalStateKey)) {
-			o.ctx.Log("message", "removing goal state from the event map", "key", key)
-			o.goalStateEventMap.Delete(key)
+		tmpGoalStateKey := key.(types.GoalStateKey)
+		if !slices.Contains(goalStateKeys, tmpGoalStateKey) {
+			o.ctx.Log("message", fmt.Sprintf("removing goal state from the event map with key %v", tmpGoalStateKey))
+			o.goalStateEventMap.Delete(tmpGoalStateKey)
 		}
 		return true // continue iterating
 	})
