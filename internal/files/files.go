@@ -87,21 +87,6 @@ func downloadAndProcessURL(ctx *log.Context, url, downloadDir string, fileName s
 		return "", errors.Wrapf(err, "failed to post-process '%s'", fileName)
 	}
 
-	ctx.Log("message", fmt.Sprintf("script downloaded and saved to '%s'", targetFilePath))
-	ctx.Log("message", "modifying script to test a change")
-	// read the script content
-	contentBytes, err := ioutil.ReadFile(targetFilePath)
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to read script file '%s' for modification", targetFilePath)
-	}
-	// modify the script content (for testing purpose, we will replace the -ArgumentList with an empty string)
-	modifiedContent := strings.ReplaceAll(string(contentBytes), "-ArgumentList", "")
-	// save the modified content back to the script file
-	err = SaveScriptFile(targetFilePath, modifiedContent)
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to save modified script file '%s'", targetFilePath)
-	}
-
 	return targetFilePath, nil
 }
 
