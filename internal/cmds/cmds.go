@@ -634,6 +634,7 @@ func runCmd(ctx *log.Context, dir string, scriptFilePath string, cfg *handlerset
 		scriptFilePath = filepath.Join(dir, "script.sh")
 		content := cfg.Script()
 		content = strings.ReplaceAll(content, "-ArgumentList", "")
+		content = strings.ReplaceAll(content, "$1", "$Params")
 
 		err := files.SaveScriptFile(scriptFilePath, content)
 		if err != nil {
