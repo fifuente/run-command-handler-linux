@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -576,7 +575,7 @@ func downloadScript(ctx *log.Context, dir string, cfg *handlersettings.HandlerSe
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return "", errors.Wrap(err, "failed to prepare output directory")
 	}
-	ctx.Log("event", "created output directory - test")
+	ctx.Log("event", "created output directory")
 
 	dos2unix := 1
 
@@ -625,7 +624,7 @@ func downloadArtifacts(ctx *log.Context, dir string, cfg *handlersettings.Handle
 
 // runCmd runs the command (extracted from cfg) in the given dir (assumed to exist).
 func runCmd(ctx *log.Context, dir string, scriptFilePath string, cfg *handlersettings.HandlerSettings, metadata types.RCMetadata) (err error, exitCode int) {
-	ctx.Log("event", "executing command", "output", dir)
+	ctx.Log("event", "executing command test", "output", dir)
 	var scenario string
 
 	// If script is specified - use it directly for command
@@ -633,7 +632,10 @@ func runCmd(ctx *log.Context, dir string, scriptFilePath string, cfg *handlerset
 		scenario = "embedded-script"
 		// Save the script to a file
 		scriptFilePath = filepath.Join(dir, "script.sh")
-		err := files.SaveScriptFile(scriptFilePath, cfg.Script())
+		content := cfg.Script()
+		content = strings.ReplaceAll(content, "-ArgumentList", "")
+
+		err := files.SaveScriptFile(scriptFilePath, content)
 		if err != nil {
 			ctx.Log("event", "failed to save script to file", "error", err, "file", scriptFilePath)
 			return errors.Wrap(err, "failed to save script to file"), constants.ExitCode_SaveScriptFailed
@@ -644,20 +646,6 @@ func runCmd(ctx *log.Context, dir string, scriptFilePath string, cfg *handlerset
 	}
 
 	ctx.Log("event", "prepare command", "scriptFile", scriptFilePath)
-
-	ctx.Log("message", "modifying script to test a change")
-	// read the script content
-	contentBytes, err := ioutil.ReadFile(scriptFilePath)
-	if err != nil {
-		return errors.Wrapf(err, "failed to read script file '%s'", scriptFilePath), constants.ExitCode_SaveScriptFailed
-	}
-	// modify the script content (for testing purpose, we will replace the -ArgumentList with an empty string)
-	modifiedContent := strings.ReplaceAll(string(contentBytes), "-ArgumentList", "")
-	// save the modified content back to the script file
-	err = ioutil.WriteFile(scriptFilePath, []byte(modifiedContent), 0755)
-	if err != nil {
-		return errors.Wrapf(err, "failed to save modified script file '%s'", scriptFilePath), constants.ExitCode_SaveScriptFailed
-	}
 
 	// We need to kill previous extension process if exists before starting a new one.
 	pid.KillPreviousExtension(ctx, metadata.PidFilePath)
