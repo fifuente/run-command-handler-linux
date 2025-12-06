@@ -155,11 +155,17 @@ func SetEnvironmentVariables(cfg *handlersettings.HandlerSettings) (string, erro
 		parameters = append(parameters, cfg.ProtectedSettings.ProtectedParameters...)
 	}
 
+	isFleetDiagnosticsCommandId := false
+	if strings.Contains(cfg.PublicSettings.Source.Script, constants.CommandID_FleetDiagnosticsLinux) {
+		isFleetDiagnosticsCommandId = true
+	}
+
 	for i := 0; i < len(parameters); i++ {
 		name := parameters[i].Name
 		value := parameters[i].Value
 		if value != "" {
-			if name != "" { // Named parameters are set as environmental setting
+			if name != "" && !isFleetDiagnosticsCommandId {
+				// Named parameters are set as environmental setting except for FleetDiagnosticsLinux
 				err = os.Setenv(name, value)
 			} else { // Unnamed parameters go to command args
 				commandArgs += " " + value
